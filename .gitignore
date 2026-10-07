@@ -1,0 +1,8 @@
+config.json
+tinytuya.json
+devices.json
+snapshot.json
+*.csv
+__pycache__/
+*.egg-info/
+.venv/

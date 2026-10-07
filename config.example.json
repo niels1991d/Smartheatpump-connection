@@ -1,0 +1,19 @@
+{
+  "device_id": "jouw-device-id",
+  "ip": "192.168.1.50",
+  "local_key": "jouw-local-key",
+  "version": 3.3,
+
+  "api_region": "eu",
+  "api_key": "",
+  "api_secret": "",
+
+  "temp_scale": 1,
+  "dp_map": {
+    "power": "1",
+    "target_temp": "2",
+    "current_temp": "3",
+    "mode": "4",
+    "fault": "15"
+  }
+}
