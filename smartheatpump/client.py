@@ -108,8 +108,9 @@ class HeatPump:
         self.set_dp(self.config.dp_map["power"], bool(on))
 
     def set_target_temp(self, celsius: float) -> None:
-        if not 5 <= celsius <= 60:
-            raise HeatPumpError("Doeltemperatuur moet tussen 5 en 60 °C liggen.")
+        lo, hi = self.config.temp_min, self.config.temp_max
+        if not lo <= celsius <= hi:
+            raise HeatPumpError(f"Doeltemperatuur moet tussen {lo:g} en {hi:g} °C liggen.")
         self.set_dp(self.config.dp_map["target_temp"], int(round(celsius * self.config.temp_scale)))
 
     def set_mode(self, mode: str) -> None:

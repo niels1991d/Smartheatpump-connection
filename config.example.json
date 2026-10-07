@@ -8,6 +8,15 @@
   "api_key": "",
   "api_secret": "",
 
+  "app_password": "",
+  "temp_min": 5,
+  "temp_max": 40,
+  "modes": [
+    {"value": "heat", "label": "Verwarmen"},
+    {"value": "cool", "label": "Koelen"},
+    {"value": "auto", "label": "Auto"}
+  ],
+
   "temp_scale": 1,
   "dp_map": {
     "power": "1",

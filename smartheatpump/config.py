@@ -18,6 +18,13 @@ DEFAULT_DP_MAP: dict[str, str] = {
     "fault": "15",
 }
 
+# Modi zoals de warmtepomp ze kent (waarde) en hoe de app ze toont (label).
+DEFAULT_MODES: list[dict[str, str]] = [
+    {"value": "heat", "label": "Verwarmen"},
+    {"value": "cool", "label": "Koelen"},
+    {"value": "auto", "label": "Auto"},
+]
+
 
 @dataclass
 class Config:
@@ -34,6 +41,11 @@ class Config:
     dp_map: dict[str, str] = field(default_factory=lambda: dict(DEFAULT_DP_MAP))
     # Sommige modellen geven temperaturen ×10 terug (bijv. 285 = 28,5 °C)
     temp_scale: float = 1.0
+    temp_min: float = 5.0
+    temp_max: float = 40.0
+    modes: list[dict[str, str]] = field(default_factory=lambda: [dict(m) for m in DEFAULT_MODES])
+    # Wachtwoord voor de web-app (leeg = geen wachtwoord, alleen veilig in je eigen netwerk)
+    app_password: str = ""
 
     @property
     def has_local(self) -> bool:
@@ -53,6 +65,9 @@ _ENV = {
     "api_key": "SHP_API_KEY",
     "api_secret": "SHP_API_SECRET",
     "temp_scale": "SHP_TEMP_SCALE",
+    "temp_min": "SHP_TEMP_MIN",
+    "temp_max": "SHP_TEMP_MAX",
+    "app_password": "SHP_APP_PASSWORD",
 }
 
 
@@ -73,4 +88,6 @@ def load_config(path: str | os.PathLike | None = None) -> Config:
     cfg = Config(dp_map=dp_map, **{k: v for k, v in data.items() if k in Config.__dataclass_fields__})
     cfg.version = float(cfg.version)
     cfg.temp_scale = float(cfg.temp_scale)
+    cfg.temp_min = float(cfg.temp_min)
+    cfg.temp_max = float(cfg.temp_max)
     return cfg

@@ -3,6 +3,11 @@
 Lees en stuur je warmtepomp aan die je nu met de **Smart Heatpump**-app (Tuya) bedient,
 zonder de app: via je eigen netwerk (lokaal) of via de Tuya-cloud.
 
+<p>
+  <img src="docs/screenshot-licht.png" width="260" alt="App in lichte modus">
+  <img src="docs/screenshot-donker.png" width="260" alt="App in donkere modus">
+</p>
+
 ## Installeren
 
 ```bash
@@ -57,6 +62,56 @@ pump = HeatPump(load_config())
 print(pump.status().as_dict())
 pump.set_target_temp(28)
 ```
+
+## iPhone-app
+
+Een web-app die je op je beginscherm zet en die werkt als een gewone app: wijzerplaat met de
+watertemperatuur, gewenste temperatuur met +/−, aan/uit, modus en een grafiek van de afgelopen
+24 uur of 7 dagen. Volgt automatisch de lichte/donkere modus van je iPhone.
+
+### Eerst bekijken met nepgegevens
+
+```bash
+SHP_DEMO=1 smartheatpump serve
+```
+
+Open daarna `http://<ip-van-je-computer>:8000` op je iPhone (zelfde wifi).
+
+### Echt gebruiken
+
+1. Zorg dat `smartheatpump status` werkt (zie hierboven).
+2. Start de server op een computer die altijd aan staat, bijvoorbeeld een Raspberry Pi:
+   ```bash
+   smartheatpump serve
+   ```
+   Of met Docker:
+   ```bash
+   docker build -t smartheatpump .
+   docker run -d --restart unless-stopped --network host -v $PWD:/data smartheatpump
+   ```
+   (`--network host` is nodig voor de lokale verbinding met de warmtepomp; `config.json` staat in de huidige map.)
+3. Open `http://<ip-van-de-server>:8000` in **Safari** op je iPhone.
+4. Tik op **Deel** (vierkantje met pijl) → **Zet op beginscherm**.
+
+De server meet elke 5 minuten de temperatuur voor de grafiek (`history.db`, 30 dagen bewaard).
+
+### Buitenshuis gebruiken
+
+Zet de server **niet** zomaar open op internet. De makkelijkste veilige manier is
+[Tailscale](https://tailscale.com) (gratis): installeer het op de server en op je iPhone, en open
+de app via het Tailscale-adres van de server.
+
+Stel daarnaast altijd een wachtwoord in als de app buiten je eigen netwerk bereikbaar is:
+`"app_password": "..."` in `config.json` of `SHP_APP_PASSWORD`. De app vraagt er eenmalig om.
+
+### Instellingen voor de app
+
+In `config.json`:
+
+- `temp_min` / `temp_max`: bereik van de gewenste temperatuur (standaard 5–40 °C)
+- `modes`: de modi van jouw warmtepomp, bijvoorbeeld
+  `[{"value": "heat", "label": "Verwarmen"}, {"value": "eco", "label": "Eco"}]`.
+  De `value` moet overeenkomen met wat `smartheatpump dps` laat zien.
 
 ## Datapoints aanpassen
 

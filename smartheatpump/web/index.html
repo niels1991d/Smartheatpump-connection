@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Warmtepomp">
+<meta name="theme-color" content="#f4f1ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14110f" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Warmtepomp</title>
+<style>
+  :root {
+    --bg: #f4f1ec;
+    --card: #ffffff;
+    --text: #1d1a17;
+    --muted: #7b736b;
+    --line: #e7e1d9;
+    --track: #ece6de;
+    --warm: #f26b2a;
+    --warm-2: #f6a04d;
+    --cool: #3a8fd9;
+    --ok: #2f9e6b;
+    --danger: #d64545;
+    --shadow: 0 1px 2px rgba(40, 30, 20, .06), 0 6px 20px rgba(40, 30, 20, .06);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14110f;
+      --card: #201c19;
+      --text: #f5efe8;
+      --muted: #a39a90;
+      --line: #322c27;
+      --track: #2e2823;
+      --shadow: none;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    padding: env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 24px);
+    -webkit-user-select: none; user-select: none;
+    min-height: 100vh;
+  }
+  main { max-width: 480px; margin: 0 auto; }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 18px 2px 10px; }
+  h1 { font-size: 30px; font-weight: 700; letter-spacing: -.02em; margin: 0; }
+  .pill {
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 5px 10px; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+  .dot.bad { background: var(--danger); }
+
+  .card { background: var(--card); border-radius: 22px; box-shadow: var(--shadow); padding: 18px; margin-top: 14px; }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+
+  /* Wijzerplaat */
+  .dial { position: relative; width: min(78vw, 300px); aspect-ratio: 1; margin: 6px auto -8%; }
+  .dial svg { width: 100%; height: 100%; display: block; }
+  .dial .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .big { font-size: clamp(48px, 15vw, 64px); font-weight: 300; letter-spacing: -.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .big sup { font-size: .4em; font-weight: 400; vertical-align: top; position: relative; top: .35em; margin-left: 2px; }
+  .sub { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .state { margin-top: 10px; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+  .state.heating { color: var(--warm); }
+  .state.done { color: var(--ok); }
+  .state.off { color: var(--muted); }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .25; transform: scale(.7); } }
+  @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
+  #arc { transition: stroke-dashoffset .6s ease; }
+  #knob { transition: transform .3s ease; }
+
+  /* Doeltemperatuur */
+  .target { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .target .val { text-align: center; }
+  .target .val b { font-size: 40px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .target .val span { display: block; color: var(--muted); font-size: 13px; }
+  .round {
+    width: 64px; height: 64px; border-radius: 50%; border: none; flex: none;
+    background: var(--track); color: var(--text); font-size: 30px; font-weight: 400; cursor: pointer;
+    display: grid; place-items: center; transition: transform .1s ease, background .2s;
+  }
+  .round:active { transform: scale(.92); background: var(--line); }
+  .round:disabled { opacity: .35; }
+
+  /* Aan/uit */
+  .power {
+    width: 100%; border: none; border-radius: 18px; padding: 18px; cursor: pointer;
+    font: inherit; font-size: 17px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: var(--warm); color: #fff; transition: background .25s, transform .1s;
+  }
+  .power.is-off { background: var(--track); color: var(--text); }
+  .power:active { transform: scale(.98); }
+  .power svg { width: 22px; height: 22px; }
+
+  /* Modus */
+  .seg { display: flex; background: var(--track); border-radius: 14px; padding: 4px; gap: 4px; }
+  .seg button {
+    flex: 1; border: none; background: transparent; color: var(--text); font: inherit; font-size: 15px; font-weight: 500;
+    padding: 10px 6px; border-radius: 11px; cursor: pointer; white-space: nowrap; transition: background .2s, box-shadow .2s;
+  }
+  .seg button[aria-pressed="true"] { background: var(--card); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+
+  /* Grafiek */
+  .chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .chart-head h2 { margin: 0; }
+  .seg.small { padding: 3px; border-radius: 10px; }
+  .seg.small button { font-size: 13px; padding: 5px 10px; border-radius: 8px; }
+  #chart { width: 100%; height: 170px; display: block; }
+  #chart text { fill: var(--muted); font-size: 11px; }
+  .legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; background: var(--warm); }
+  .legend i.t { background: none; border-top: 2px dashed var(--muted); height: 0; }
+  .empty { color: var(--muted); font-size: 14px; text-align: center; padding: 40px 0; }
+
+  .fault { background: color-mix(in srgb, var(--danger) 12%, var(--card)); color: var(--danger); font-weight: 600; }
+  .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 18px; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 20px); transform: translate(-50%, 140%);
+    background: var(--text); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-size: 15px;
+    max-width: calc(100vw - 32px); transition: transform .3s ease, opacity .3s; z-index: 10; opacity: 0; pointer-events: none;
+  }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+  /* Inloggen */
+  #login { display: none; margin-top: 18vh; text-align: center; }
+  #login input {
+    width: 100%; font: inherit; font-size: 17px; padding: 14px 16px; border-radius: 14px;
+    border: 1px solid var(--line); background: var(--card); color: var(--text); margin: 18px 0 12px;
+  }
+  .loading .card, .loading .foot { opacity: .5; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body class="loading">
+<main>
+  <section id="login">
+    <h1>Warmtepomp</h1>
+    <p class="sub">Voer het wachtwoord van je app in.</p>
+    <form id="login-form">
+      <input id="pw" type="password" autocomplete="current-password" placeholder="Wachtwoord">
+      <button class="power" type="submit">Inloggen</button>
+    </form>
+  </section>
+
+  <section id="app">
+    <header>
+      <h1>Warmtepomp</h1>
+      <span class="pill"><span class="dot" id="conn-dot"></span><span id="conn">Verbinden…</span></span>
+    </header>
+
+    <div class="card fault" id="fault" hidden></div>
+
+    <div class="card">
+      <div class="dial">
+        <svg viewBox="0 0 240 240" aria-hidden="true">
+          <defs>
+            <linearGradient id="g" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0" stop-color="var(--warm-2)"/><stop offset="1" stop-color="var(--warm)"/>
+            </linearGradient>
+          </defs>
+          <path id="track" fill="none" stroke="var(--track)" stroke-width="16" stroke-linecap="round"/>
+          <path id="arc" fill="none" stroke="url(#g)" stroke-width="16" stroke-linecap="round"/>
+          <g id="knob"><circle cx="120" cy="20" r="10" fill="var(--card)" stroke="var(--warm)" stroke-width="4"/></g>
+        </svg>
+        <div class="center">
+          <div class="big" id="current">–<sup>°C</sup></div>
+          <div class="sub">watertemperatuur</div>
+          <div class="state off" id="state">–</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Gewenste temperatuur</h2>
+      <div class="target">
+        <button class="round" id="minus" aria-label="Lager">−</button>
+        <div class="val"><b id="target">–</b><span id="target-hint">&nbsp;</span></div>
+        <button class="round" id="plus" aria-label="Hoger">+</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <button class="power" id="power">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>
+        <span id="power-label">–</span>
+      </button>
+    </div>
+
+    <div class="card" id="mode-card">
+      <h2>Modus</h2>
+      <div class="seg" id="modes"></div>
+    </div>
+
+    <div class="card">
+      <div class="chart-head">
+        <h2>Verloop</h2>
+        <div class="seg small" id="range">
+          <button data-h="24" aria-pressed="true">24 uur</button>
+          <button data-h="168" aria-pressed="false">7 dagen</button>
+        </div>
+      </div>
+      <svg id="chart" preserveAspectRatio="none"></svg>
+      <div class="legend"><span><i></i>Water</span><span><i class="t"></i>Gewenst</span></div>
+    </div>
+
+    <div class="foot" id="updated">&nbsp;</div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n, d = 1) => n == null ? "–" : n.toLocaleString("nl-NL", { minimumFractionDigits: d, maximumFractionDigits: d });
+  const CONN = { local: "Lokaal", cloud: "Cloud", demo: "Demo" };
+
+  let info = null, status = null, pendingTarget = null, targetTimer = null, hours = 24;
+
+  function storedPassword() { try { return localStorage.getItem("shp-pw") || ""; } catch { return ""; } }
+  function savePassword(v) { try { localStorage.setItem("shp-pw", v); } catch {} }
+
+  async function api(path, body) {
+    const res = await fetch("api/" + path, {
+      method: body ? "POST" : "GET",
+      headers: { "Content-Type": "application/json", "X-App-Password": storedPassword() },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) { showLogin(); throw new Error("Log opnieuw in"); }
+    if (!res.ok) throw new Error(data.error || "Er ging iets mis");
+    return data;
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 3500);
+  }
+
+  /* ---------- wijzerplaat ---------- */
+  const CX = 120, CY = 120, R = 100, START = 135, SWEEP = 270;
+  const pt = (deg) => { const a = (deg - 90) * Math.PI / 180; return [CX + R * Math.cos(a), CY + R * Math.sin(a)]; };
+  function arcPath(from, to) {
+    const [x1, y1] = pt(from), [x2, y2] = pt(to);
+    return `M ${x1} ${y1} A ${R} ${R} 0 ${to - from > 180 ? 1 : 0} 1 ${x2} ${y2}`;
+  }
+  const full = arcPath(START + 90, START + 90 + SWEEP); // gemeten vanaf 12 uur
+  $("track").setAttribute("d", full);
+  $("arc").setAttribute("d", full);
+  const arcLen = $("arc").getTotalLength();
+  $("arc").style.strokeDasharray = arcLen;
+  $("arc").style.strokeDashoffset = arcLen;
+
+  function frac(t) {
+    const lo = info.temp_min, hi = info.temp_max;
+    return Math.min(1, Math.max(0, ((t ?? lo) - lo) / (hi - lo)));
+  }
+  function drawDial() {
+    $("arc").style.strokeDashoffset = arcLen * (1 - frac(status.current_temp));
+    const tgt = pendingTarget ?? status.target_temp;
+    const deg = START + 90 + SWEEP * frac(tgt);
+    $("knob").style.transform = `rotate(${deg}deg)`;
+    $("knob").style.transformOrigin = "120px 120px";
+  }
+
+  /* ---------- weergave ---------- */
+  function render() {
+    if (!status || !info) return;
+    document.body.classList.remove("loading");
+    const tgt = pendingTarget ?? status.target_temp;
+    $("current").innerHTML = `${fmt(status.current_temp)}<sup>°C</sup>`;
+    $("target").textContent = tgt == null ? "–" : `${fmt(tgt, tgt % 1 ? 1 : 0)}°`;
+    $("minus").disabled = tgt != null && tgt <= info.temp_min;
+    $("plus").disabled = tgt != null && tgt >= info.temp_max;
+
+    const st = $("state");
+    const diff = (tgt ?? 0) - (status.current_temp ?? 0);
+    if (!status.power) { st.className = "state off"; st.textContent = "Uit"; }
+    else if (diff > 0.3) {
+      st.className = "state heating"; st.innerHTML = `<span class="pulse"></span>Aan het verwarmen`;
+      $("target-hint").textContent = `nog ${fmt(diff)}° te gaan`;
+    } else { st.className = "state done"; st.textContent = "Op temperatuur"; }
+    if (!status.power || diff <= 0.3) $("target-hint").innerHTML = "&nbsp;";
+
+    const pw = $("power");
+    pw.classList.toggle("is-off", !status.power);
+    $("power-label").textContent = status.power ? "Aan — tik om uit te zetten" : "Uit — tik om aan te zetten";
+
+    document.querySelectorAll("#modes button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === status.mode)));
+
+    const f = $("fault");
+    f.hidden = !status.fault;
+    if (status.fault) f.textContent = `⚠️ Storing gemeld door de warmtepomp (code ${status.fault})`;
+
+    $("conn").textContent = CONN[status.connection] || status.connection;
+    $("conn-dot").classList.remove("bad");
+    const t = new Date(status.updated * 1000);
+    $("updated").textContent = `Bijgewerkt om ${t.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
+    drawDial();
+  }
+
+  async function refresh() {
+    try { status = await api("status"); render(); }
+    catch (e) { $("conn").textContent = "Geen verbinding"; $("conn-dot").classList.add("bad"); toast(e.message); }
+  }
+
+  /* ---------- bediening ---------- */
+  function stepTarget(delta) {
+    if (!status) return;
+    const base = pendingTarget ?? status.target_temp ?? info.temp_min;
+    pendingTarget = Math.min(info.temp_max, Math.max(info.temp_min, Math.round(base + delta)));
+    render();
+    clearTimeout(targetTimer);
+    targetTimer = setTimeout(async () => {
+      const value = pendingTarget;
+      try { status = await api("target", { celsius: value }); toast(`Ingesteld op ${value}°C`); }
+      catch (e) { toast(e.message); }
+      finally { if (pendingTarget === value) pendingTarget = null; render(); }
+    }, 700);
+  }
+  $("minus").onclick = () => stepTarget(-1);
+  $("plus").onclick = () => stepTarget(+1);
+
+  $("power").onclick = async () => {
+    if (!status) return;
+    const on = !status.power;
+    status = { ...status, power: on }; render();
+    try { status = await api("power", { on }); toast(on ? "Warmtepomp aangezet" : "Warmtepomp uitgezet"); }
+    catch (e) { status = { ...status, power: !on }; toast(e.message); }
+    render();
+  };
+
+  function buildModes() {
+    const box = $("modes"); box.innerHTML = "";
+    $("mode-card").hidden = !info.modes.length;
+    for (const m of info.modes) {
+      const b = document.createElement("button");
+      b.textContent = m.label; b.dataset.v = m.value;
+      b.onclick = async () => {
+        const prev = status.mode;
+        status = { ...status, mode: m.value }; render();
+        try { status = await api("mode", { mode: m.value }); }
+        catch (e) { status = { ...status, mode: prev }; toast(e.message); }
+        render();
+      };
+      box.appendChild(b);
+    }
+  }
+
+  /* ---------- grafiek ---------- */
+  async function drawChart() {
+    const svg = $("chart");
+    let rows;
+    try { rows = await api(`history?hours=${hours}`); } catch { return; }
+    const W = svg.clientWidth || 320, H = 170, L = 30, Rr = 6, T = 8, B = 22;
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    const pts = rows.filter((r) => r.current != null);
+    if (pts.length < 2) {
+      svg.innerHTML = `<text x="${W / 2}" y="${H / 2}" text-anchor="middle">Nog geen metingen — de app meet elke 5 minuten.</text>`;
+      return;
+    }
+    const now = Date.now() / 1000, t0 = now - hours * 3600;
+    const vals = pts.flatMap((r) => [r.current, r.target].filter((v) => v != null));
+    let lo = Math.floor(Math.min(...vals) - 1), hi = Math.ceil(Math.max(...vals) + 1);
+    const x = (t) => L + (W - L - Rr) * (t - t0) / (now - t0);
+    const y = (v) => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+
+    const gap = Math.max(900, hours * 3600 / 100);
+    const line = (key) => {
+      let d = "", prev = null;
+      for (const r of rows) {
+        if (r[key] == null) { prev = null; continue; }
+        d += `${prev == null || r.ts - prev > gap ? "M" : "L"}${x(r.ts).toFixed(1)},${y(r[key]).toFixed(1)} `;
+        prev = r.ts;
+      }
+      return d;
+    };
+    const cur = line("current");
+    const first = pts[0], last = pts[pts.length - 1];
+    const area = `${cur} L${x(last.ts)},${H - B} L${x(first.ts)},${H - B} Z`;
+
+    const grid = [lo, (lo + hi) / 2, hi].map((v) =>
+      `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/>` +
+      `<text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${Math.round(v)}°</text>`).join("");
+    const labelFmt = hours > 24 ? { weekday: "short" } : { hour: "2-digit", minute: "2-digit" };
+    const ticks = [0, 0.5, 1].map((f) => {
+      const t = t0 + f * (now - t0);
+      const anchor = f === 0 ? "start" : f === 1 ? "end" : "middle";
+      const label = f === 1 ? "nu" : new Date(t * 1000).toLocaleString("nl-NL", labelFmt);
+      return `<text x="${x(t)}" y="${H - 5}" text-anchor="${anchor}">${label}</text>`;
+    }).join("");
+
+    svg.innerHTML = `
+      <defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--warm)" stop-opacity=".28"/><stop offset="1" stop-color="var(--warm)" stop-opacity="0"/>
+      </linearGradient></defs>
+      ${grid}${ticks}
+      <path d="${area}" fill="url(#fill)" stroke="none"/>
+      <path d="${line("target")}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <path d="${cur}" fill="none" stroke="var(--warm)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${x(last.ts)}" cy="${y(last.current)}" r="4" fill="var(--warm)" stroke="var(--card)" stroke-width="2"/>`;
+  }
+  document.querySelectorAll("#range button").forEach((b) => b.onclick = () => {
+    hours = +b.dataset.h;
+    document.querySelectorAll("#range button").forEach((o) => o.setAttribute("aria-pressed", String(o === b)));
+    drawChart();
+  });
+
+  /* ---------- opstarten ---------- */
+  function showLogin() { $("app").hidden = true; $("login").style.display = "block"; document.body.classList.remove("loading"); }
+  $("login-form").onsubmit = (e) => { e.preventDefault(); savePassword($("pw").value); location.reload(); };
+
+  async function start() {
+    try { info = await (await fetch("api/info")).json(); }
+    catch { toast("Server niet bereikbaar"); return; }
+    if (info.auth_required && !storedPassword()) return showLogin();
+    buildModes();
+    await refresh();
+    drawChart();
+    setInterval(() => { if (!document.hidden) refresh(); }, 10000);
+    setInterval(() => { if (!document.hidden) drawChart(); }, 300000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) { refresh(); drawChart(); } });
+    addEventListener("resize", () => drawChart());
+  }
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+  start();
+})();
+</script>
+</body>
+</html>

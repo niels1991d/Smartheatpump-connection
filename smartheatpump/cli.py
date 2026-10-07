@@ -91,6 +91,14 @@ def cmd_log(args) -> None:
             time.sleep(args.interval)
 
 
+def cmd_serve(args) -> None:
+    from .server import create_app
+
+    app = create_app(load_config(args.config))
+    print(f"Web-app draait op http://{args.host}:{args.port} (Ctrl+C om te stoppen).")
+    app.run(host=args.host, port=args.port, threaded=True)
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="smartheatpump", description="Verbinding met je Tuya/Smart Heatpump-warmtepomp.")
     p.add_argument("-c", "--config", help="pad naar config.json (standaard ./config.json)")
@@ -122,6 +130,11 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--interval", type=int, default=60)
     s.add_argument("--file", default="warmtepomp.csv")
     s.set_defaults(func=cmd_log)
+
+    s = sub.add_parser("serve", help="start de web-app voor je telefoon")
+    s.add_argument("--host", default="0.0.0.0")
+    s.add_argument("--port", type=int, default=8000)
+    s.set_defaults(func=cmd_serve)
     return p
 
 

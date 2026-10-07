@@ -6,3 +6,5 @@ snapshot.json
 __pycache__/
 *.egg-info/
 .venv/
+history.db
+build/

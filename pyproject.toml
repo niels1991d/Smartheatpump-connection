@@ -3,7 +3,7 @@ name = "smartheatpump"
 version = "0.1.0"
 description = "Lees en stuur een Tuya/Smart Heatpump-warmtepomp aan"
 requires-python = ">=3.9"
-dependencies = ["tinytuya>=1.13"]
+dependencies = ["tinytuya>=1.13", "flask>=3.0"]
 
 [project.scripts]
 smartheatpump = "smartheatpump.cli:main"
@@ -14,3 +14,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["smartheatpump"]
+
+[tool.setuptools.package-data]
+smartheatpump = ["web/*"]
