@@ -12,11 +12,11 @@ from .config import Config
 class DemoHeatPump:
     mode = "demo"
 
-    def __init__(self, config: Config, current: float = 24.6):
+    def __init__(self, config: Config, current: float = 35.0):
         self.config = config
         self._lock = threading.Lock()
         self._power = True
-        self._target = 28.0
+        self._target = 40.0
         self._current = current
         self._mode = config.modes[0]["value"] if config.modes else "heat"
         self._last = time.monotonic()
@@ -25,7 +25,7 @@ class DemoHeatPump:
         # Watertemperatuur beweegt langzaam richting doel als de pomp aan staat.
         now = time.monotonic()
         dt, self._last = now - self._last, now
-        goal = self._target if self._power else 18.0
+        goal = self._target if self._power else 22.0
         rate = 0.02 if self._power else 0.005  # °C per seconde
         step = min(abs(goal - self._current), rate * dt)
         self._current += step if goal > self._current else -step

@@ -32,7 +32,7 @@ def create_app(
         if not history.since(86400):
             _seed_demo_history(history)
         recent = history.since(86400)
-        pump = DemoHeatPump(config, current=recent[-1]["current"] if recent else 24.6)
+        pump = DemoHeatPump(config, current=recent[-1]["current"] if recent else 35.0)
     pump = pump or HeatPump(config)
 
     app = Flask(__name__, static_folder=None)
@@ -135,13 +135,13 @@ def _seed_demo_history(history: History) -> None:
     from .client import Status
 
     now = int(time.time())
-    temp = 23.0
+    temp = 30.0
     for i in range(288, 0, -1):
         ts = now - i * 300
         on = i < 100 or i > 220  # 's nachts even uit
-        goal = 28.0 if on else 19.0
+        goal = 40.0 if on else 24.0
         temp += (goal - temp) * (0.02 if on else 0.006)
-        history.add(Status(on, 28.0, round(temp, 1), None, 0, {}), ts=ts)
+        history.add(Status(on, 40.0, round(temp, 1), None, 0, {}), ts=ts)
 
 def run(host: str = "0.0.0.0", port: int = 8000) -> None:
     create_app().run(host=host, port=port, threaded=True)

@@ -1,7 +1,7 @@
 # smartheatpump-connection
 
-Lees en stuur je warmtepomp aan die je nu met de **Smart Heatpump**-app (Tuya) bedient,
-zonder de app: via je eigen netwerk (lokaal) of via de Tuya-cloud.
+Lees en stuur je **DRZM**-lucht/water-warmtepomp aan (6-8 kW / 12-18 kW) zonder de
+Smart Heatpump-app: via je eigen netwerk (lokaal) of via de Tuya-cloud.
 
 <p>
   <img src="docs/screenshot-licht.png" width="260" alt="App in lichte modus">
@@ -13,6 +13,11 @@ zonder de app: via je eigen netwerk (lokaal) of via de Tuya-cloud.
 ```bash
 pip install -e .
 ```
+
+## 0. Warmtepomp op wifi zetten
+
+Op het touchscreen van de DRZM: **Function → Wi-Fi → Smart Mode** (aanbevolen) of **AP Mode**.
+Voeg hem daarna toe in de app (Smart Life of Tuya Smart werken met het Tuya-platform).
 
 ## 1. Gegevens van je warmtepomp ophalen (eenmalig)
 
@@ -108,7 +113,7 @@ Stel daarnaast altijd een wachtwoord in als de app buiten je eigen netwerk berei
 
 In `config.json`:
 
-- `temp_min` / `temp_max`: bereik van de gewenste temperatuur (standaard 5–40 °C)
+- `temp_min` / `temp_max`: bereik van de gewenste temperatuur (standaard 7–60 °C)
 - `modes`: de modi van jouw warmtepomp, bijvoorbeeld
   `[{"value": "heat", "label": "Verwarmen"}, {"value": "eco", "label": "Eco"}]`.
   De `value` moet overeenkomen met wat `smartheatpump dps` laat zien.

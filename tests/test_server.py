@@ -52,4 +52,4 @@ def test_history(tmp_path):
     history.add(pump.status())
     c = create_app(config, pump=pump, history=history, sample_interval=0).test_client()
     rows = c.get("/api/history?hours=1").get_json()
-    assert len(rows) == 1 and rows[0]["target"] == 28.0
+    assert len(rows) == 1 and rows[0]["target"] == 40.0

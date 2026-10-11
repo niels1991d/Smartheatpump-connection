@@ -9,14 +9,17 @@
   "api_secret": "",
 
   "app_password": "",
-  "temp_min": 5,
-  "temp_max": 40,
+  "temp_min": 7,
+  "temp_max": 60,
   "modes": [
     {"value": "heat", "label": "Verwarmen"},
+    {"value": "floor_heat", "label": "Vloerverwarming"},
     {"value": "cool", "label": "Koelen"},
-    {"value": "auto", "label": "Auto"}
+    {"value": "hot_water", "label": "Warm water"},
+    {"value": "heat_hot_water", "label": "Verwarmen + warm water"},
+    {"value": "floor_hot_water", "label": "Vloer + warm water"},
+    {"value": "cool_hot_water", "label": "Koelen + warm water"}
   ],
-
   "temp_scale": 1,
   "dp_map": {
     "power": "1",

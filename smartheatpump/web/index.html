@@ -114,6 +114,12 @@
   /* Grafiek */
   .chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .chart-head h2 { margin: 0; }
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .modes button {
+    border: 1px solid var(--line); background: var(--card); color: var(--text); font: inherit; font-size: 15px;
+    padding: 12px 10px; border-radius: 14px; cursor: pointer; text-align: left; transition: background .2s, border-color .2s;
+  }
+  .modes button[aria-pressed="true"] { background: var(--warm); border-color: var(--warm); color: #fff; font-weight: 600; }
   .seg.small { padding: 3px; border-radius: 10px; }
   .seg.small button { font-size: 13px; padding: 5px 10px; border-radius: 8px; }
   #chart { width: 100%; height: 170px; display: block; }
@@ -200,7 +206,7 @@
 
     <div class="card" id="mode-card">
       <h2>Modus</h2>
-      <div class="seg" id="modes"></div>
+      <div class="modes" id="modes"></div>
     </div>
 
     <div class="card">
@@ -286,10 +292,11 @@
     $("plus").disabled = tgt != null && tgt >= info.temp_max;
 
     const st = $("state");
-    const diff = (tgt ?? 0) - (status.current_temp ?? 0);
+    const cooling = String(status.mode || "").startsWith("cool");
+    const diff = ((tgt ?? 0) - (status.current_temp ?? 0)) * (cooling ? -1 : 1);
     if (!status.power) { st.className = "state off"; st.textContent = "Uit"; }
     else if (diff > 0.3) {
-      st.className = "state heating"; st.innerHTML = `<span class="pulse"></span>Aan het verwarmen`;
+      st.className = "state heating"; st.innerHTML = `<span class="pulse"></span>${cooling ? "Aan het koelen" : "Aan het verwarmen"}`;
       $("target-hint").textContent = `nog ${fmt(diff)}° te gaan`;
     } else { st.className = "state done"; st.textContent = "Op temperatuur"; }
     if (!status.power || diff <= 0.3) $("target-hint").innerHTML = "&nbsp;";

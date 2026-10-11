@@ -7,7 +7,7 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# Veelgebruikte datapoints (DP's) bij Tuya-warmtepompen (o.a. zwembadwarmtepompen).
+# Veelgebruikte datapoints (DP's) bij Tuya-warmtepompen.
 # Dit verschilt per model: controleer met `smartheatpump dps` en pas zo nodig aan
 # in config.json onder "dp_map".
 DEFAULT_DP_MAP: dict[str, str] = {
@@ -18,11 +18,16 @@ DEFAULT_DP_MAP: dict[str, str] = {
     "fault": "15",
 }
 
-# Modi zoals de warmtepomp ze kent (waarde) en hoe de app ze toont (label).
+# Modi van de DRZM-warmtepomp (zie handleiding: Mode-knop op het touchscreen).
+# De `value` is een gok; controleer met `smartheatpump dps` wat jouw pomp echt stuurt.
 DEFAULT_MODES: list[dict[str, str]] = [
     {"value": "heat", "label": "Verwarmen"},
+    {"value": "floor_heat", "label": "Vloerverwarming"},
     {"value": "cool", "label": "Koelen"},
-    {"value": "auto", "label": "Auto"},
+    {"value": "hot_water", "label": "Warm water"},
+    {"value": "heat_hot_water", "label": "Verwarmen + warm water"},
+    {"value": "floor_hot_water", "label": "Vloer + warm water"},
+    {"value": "cool_hot_water", "label": "Koelen + warm water"},
 ]
 
 
@@ -41,8 +46,8 @@ class Config:
     dp_map: dict[str, str] = field(default_factory=lambda: dict(DEFAULT_DP_MAP))
     # Sommige modellen geven temperaturen ×10 terug (bijv. 285 = 28,5 °C)
     temp_scale: float = 1.0
-    temp_min: float = 5.0
-    temp_max: float = 40.0
+    temp_min: float = 7.0
+    temp_max: float = 60.0
     modes: list[dict[str, str]] = field(default_factory=lambda: [dict(m) for m in DEFAULT_MODES])
     # Wachtwoord voor de web-app (leeg = geen wachtwoord, alleen veilig in je eigen netwerk)
     app_password: str = ""
